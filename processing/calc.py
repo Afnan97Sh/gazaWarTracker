@@ -1,35 +1,56 @@
 import pandas as pd
+import os
 
-# Load the Excel file
-df = pd.read_excel("data/Book1.xlsx")
+# Load the Excel file only if it exists
+def load_data():
+    try:
+        if os.path.exists("data/Book1.xlsx"):
+            return pd.read_excel("data/Book1.xlsx")
+        else:
+            # Return empty DataFrame with correct columns if file doesn't exist
+            return pd.DataFrame(columns=['Date', 'Region', 'Martyr Count', 'Injured Count', 'Damaged Homes Count', 'Attack Type'])
+    except Exception as e:
+        print(f"Error loading data: {e}")
+        return pd.DataFrame(columns=['Date', 'Region', 'Martyr Count', 'Injured Count', 'Damaged Homes Count', 'Attack Type'])
+
+# Initialize df
+df = load_data()
 
 
 def total_martyr_count():
+    # Reload data to get latest values
+    global df
+    df = load_data()
+    
     # Specify the column name to search for
     target_column_name = "Martyr Count"
 
-    if target_column_name in df.columns:
+    if target_column_name in df.columns and not df.empty:
         # Sum the values in the specified column
         total = df[target_column_name].sum()
         return total
     else:
-        print(f"Column '{target_column_name}' not found.")
+        return 0
 
 
 def total_injured_count():
+    # Reload data to get latest values
+    global df
+    df = load_data()
+    
     # Specify the column name to search for
     target_column_name = "Injured Count"
 
-    if target_column_name in df.columns:
+    if target_column_name in df.columns and not df.empty:
         # Sum the values in the specified column
         total = df[target_column_name].sum()
         return total
     else:
-        print(f"Column '{target_column_name}' not found.")
+        return 0
 
 
 def total_martyr_injured_count():
-    return total_martyr_count()+total_injured_count()
+    return total_martyr_count() + total_injured_count()
 
 
 # def most_damaged_region():

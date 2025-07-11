@@ -2,6 +2,7 @@ from openpyxl import Workbook
 import openpyxl
 import tkinter as tk
 from tkinter import messagebox
+import os
 
 from processing.calc import *
 
@@ -18,7 +19,23 @@ def submit_data():
         messagebox.showwarning("Input Error", "All fields are required!")
         return
 
+    # Validate numeric inputs
     try:
+        martyr_count_int = int(martyr_count)
+        injured_count_int = int(injured_count)
+        damaged_homes_count_int = int(damaged_homes_count)
+        
+        if martyr_count_int < 0 or injured_count_int < 0 or damaged_homes_count_int < 0:
+            messagebox.showwarning("Input Error", "Count values must be non-negative!")
+            return
+    except ValueError:
+        messagebox.showwarning("Input Error", "Martyr Count, Injured Count, and Damaged Homes Count must be valid numbers!")
+        return
+
+    try:
+        # Create data directory if it doesn't exist
+        os.makedirs("data", exist_ok=True)
+        
         # Open or create an Excel file
         try:
             workbook = openpyxl.load_workbook("data/Book1.xlsx")
@@ -30,17 +47,30 @@ def submit_data():
             sheet.append(['Date', 'Region', "Martyr Count", 'Injured Count', 'Damaged Homes Count', 'Attack Type'])
 
         # Append user data
-        sheet.append([date, region, martyr_count, injured_count, damaged_homes_count, attack_type])
+        sheet.append([date, region, martyr_count_int, injured_count_int, damaged_homes_count_int, attack_type])
         workbook.save("data/Book1.xlsx")
         messagebox.showinfo("Success", "Data saved successfully!")
+        
+        # Clear all entry fields
         date_entry.delete(0, tk.END)
         region_entry.delete(0, tk.END)
         martyr_count_entry.delete(0, tk.END)
         injured_count_entry.delete(0, tk.END)
         damaged_homes_count_entry.delete(0, tk.END)
         attack_type_entry.delete(0, tk.END)
+        
+        # Update the display labels with new totals
+        update_totals()
+        
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred: {e}")
+
+
+def update_totals():
+    """Update the total count labels with current values"""
+    total_martyr_label.config(text=str(total_martyr_count()))
+    total_injured_label.config(text=str(total_injured_count()))
+    total_victim_label.config(text=str(total_martyr_injured_count()))
 
 
 root = tk.Tk()
@@ -78,13 +108,16 @@ tk.Button(root, text="Submit", fg="white", bg="red", command=submit_data).grid(r
 
 
 tk.Label(root, text='Total Martyr Count: ').grid(row=7, column=0, padx=15, pady=10)
-tk.Label(root, text=total_martyr_count()).grid(row=7, column=1, padx=15, pady=10)
+total_martyr_label = tk.Label(root, text=str(total_martyr_count()))
+total_martyr_label.grid(row=7, column=1, padx=15, pady=10)
 
 tk.Label(root, text='Total Injured Count: ').grid(row=8, column=0, padx=15, pady=10)
-tk.Label(root, text=total_injured_count()).grid(row=8, column=1, padx=15, pady=10)
+total_injured_label = tk.Label(root, text=str(total_injured_count()))
+total_injured_label.grid(row=8, column=1, padx=15, pady=10)
 
 tk.Label(root, text='Total Victim Count: ').grid(row=9, column=0, padx=15, pady=10)
-tk.Label(root, text=total_martyr_injured_count()).grid(row=9, column=1, padx=15, pady=10)
+total_victim_label = tk.Label(root, text=str(total_martyr_injured_count()))
+total_victim_label.grid(row=9, column=1, padx=15, pady=10)
 
 
 root.mainloop()
