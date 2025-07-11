@@ -1,10 +1,22 @@
 import pandas as pd
+import os
 
-# Load the Excel file
-df = pd.read_excel("data/Book1.xlsx")
-
+def _load_data():
+    """Helper function to load data with error handling"""
+    file_path = "data/Book1.xlsx"
+    if not os.path.exists(file_path):
+        return None
+    try:
+        return pd.read_excel(file_path)
+    except Exception:
+        return None
 
 def total_martyr_count():
+    # Load fresh data each time
+    df = _load_data()
+    if df is None:
+        return 0
+    
     # Specify the column name to search for
     target_column_name = "Martyr Count"
 
@@ -14,9 +26,15 @@ def total_martyr_count():
         return total
     else:
         print(f"Column '{target_column_name}' not found.")
+        return 0
 
 
 def total_injured_count():
+    # Load fresh data each time
+    df = _load_data()
+    if df is None:
+        return 0
+    
     # Specify the column name to search for
     target_column_name = "Injured Count"
 
@@ -26,10 +44,11 @@ def total_injured_count():
         return total
     else:
         print(f"Column '{target_column_name}' not found.")
+        return 0
 
 
 def total_martyr_injured_count():
-    return total_martyr_count()+total_injured_count()
+    return total_martyr_count() + total_injured_count()
 
 
 # def most_damaged_region():
