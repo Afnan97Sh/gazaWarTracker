@@ -1,7 +1,18 @@
 import pandas as pd
+import os
 
-# Load the Excel file
-df = pd.read_excel("data/Book1.xlsx")
+# Load the Excel file with error handling
+def load_data():
+    try:
+        if os.path.exists("data/Book1.xlsx"):
+            return pd.read_excel("data/Book1.xlsx")
+        else:
+            return pd.DataFrame(columns=['Date', 'Region', 'Martyr Count', 'Injured Count', 'Damaged Homes Count', 'Attack Type'])
+    except Exception as e:
+        print(f"Error loading data: {e}")
+        return pd.DataFrame(columns=['Date', 'Region', 'Martyr Count', 'Injured Count', 'Damaged Homes Count', 'Attack Type'])
+
+df = load_data()
 
 
 def total_martyr_count():
@@ -14,6 +25,7 @@ def total_martyr_count():
         return total
     else:
         print(f"Column '{target_column_name}' not found.")
+        return 0
 
 
 def total_injured_count():
@@ -26,6 +38,7 @@ def total_injured_count():
         return total
     else:
         print(f"Column '{target_column_name}' not found.")
+        return 0
 
 
 def total_martyr_injured_count():

@@ -2,8 +2,15 @@ from openpyxl import Workbook
 import openpyxl
 import tkinter as tk
 from tkinter import messagebox
+import os
 
 from processing.calc import *
+
+
+def ensure_data_directory():
+    """Ensure the data directory exists"""
+    if not os.path.exists("data"):
+        os.makedirs("data")
 
 
 def submit_data():
@@ -18,7 +25,23 @@ def submit_data():
         messagebox.showwarning("Input Error", "All fields are required!")
         return
 
+    # Validate numeric inputs
     try:
+        martyr_count_int = int(martyr_count)
+        injured_count_int = int(injured_count)
+        damaged_homes_count_int = int(damaged_homes_count)
+        
+        if martyr_count_int < 0 or injured_count_int < 0 or damaged_homes_count_int < 0:
+            messagebox.showwarning("Input Error", "Counts cannot be negative!")
+            return
+    except ValueError:
+        messagebox.showwarning("Input Error", "Martyr Count, Injured Count, and Damaged Homes Count must be numbers!")
+        return
+
+    try:
+        # Ensure data directory exists
+        ensure_data_directory()
+        
         # Open or create an Excel file
         try:
             workbook = openpyxl.load_workbook("data/Book1.xlsx")
@@ -30,7 +53,7 @@ def submit_data():
             sheet.append(['Date', 'Region', "Martyr Count", 'Injured Count', 'Damaged Homes Count', 'Attack Type'])
 
         # Append user data
-        sheet.append([date, region, martyr_count, injured_count, damaged_homes_count, attack_type])
+        sheet.append([date, region, martyr_count_int, injured_count_int, damaged_homes_count_int, attack_type])
         workbook.save("data/Book1.xlsx")
         messagebox.showinfo("Success", "Data saved successfully!")
         date_entry.delete(0, tk.END)
