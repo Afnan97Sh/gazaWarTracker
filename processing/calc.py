@@ -1,35 +1,60 @@
 import pandas as pd
+import os
 
 # Load the Excel file
-df = pd.read_excel("data/Book1.xlsx")
+# df = pd.read_excel("data/Book1.xlsx")
 
+DATA_FILE = "data/Book1.xlsx"
+
+
+def _load_df():
+    """Safely load the Excel file and return a cleaned DataFrame.
+
+    If the file does not exist yet (e.g. first application run), an empty
+    DataFrame with the expected schema is returned instead of raising an
+    exception. All numeric columns are coerced to proper numeric dtype so
+    that arithmetic operations like sum() behave correctly even when the
+    underlying Excel values are stored as strings.
+    """
+    if not os.path.exists(DATA_FILE):
+        # Return empty DataFrame with correct columns so subsequent code works
+        return pd.DataFrame(
+            columns=[
+                "Date",
+                "Region",
+                "Martyr Count",
+                "Injured Count",
+                "Damaged Homes Count",
+                "Attack Type",
+            ]
+        )
+
+    df = pd.read_excel(DATA_FILE)
+
+    # Coerce numeric columns to numbers, turning invalid entries into NaN so they
+    # are ignored by sum() and other arithmetic ops.
+    for col in ["Martyr Count", "Injured Count", "Damaged Homes Count"]:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+    return df
+
+
+# Update the public API to use the freshly-loaded and cleaned DataFrame each time
 
 def total_martyr_count():
-    # Specify the column name to search for
-    target_column_name = "Martyr Count"
-
-    if target_column_name in df.columns:
-        # Sum the values in the specified column
-        total = df[target_column_name].sum()
-        return total
-    else:
-        print(f"Column '{target_column_name}' not found.")
+    df = _load_df()
+    return df["Martyr Count"].sum() if "Martyr Count" in df.columns else 0
 
 
 def total_injured_count():
-    # Specify the column name to search for
-    target_column_name = "Injured Count"
-
-    if target_column_name in df.columns:
-        # Sum the values in the specified column
-        total = df[target_column_name].sum()
-        return total
-    else:
-        print(f"Column '{target_column_name}' not found.")
+    df = _load_df()
+    return df["Injured Count"].sum() if "Injured Count" in df.columns else 0
 
 
 def total_martyr_injured_count():
-    return total_martyr_count()+total_injured_count()
+    # Re-use the two helper functions so we only have one place where the
+    # arithmetic/edge-case handling logic lives.
+    return total_martyr_count() + total_injured_count()
 
 
 # def most_damaged_region():
